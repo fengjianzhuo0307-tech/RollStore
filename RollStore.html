@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<title>今天吃什么？</title>
+<style>
+  :root {
+    --pink: #ff6ec7;
+    --purple: #a855f7;
+    --orange: #ff9a56;
+    --blue: #38bdf8;
+    --glass-bg: rgba(255, 255, 255, 0.08);
+    --glass-border: rgba(255, 255, 255, 0.16);
+    --text-main: #f2edfb;
+    --text-light: #b8a9d4;
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  button,
+  input {
+    touch-action: manipulation;
+  }
+
+  body {
+    font-family: "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", sans-serif;
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #000000;
+    overflow-x: hidden;
+    padding: 24px;
+    padding-top: calc(24px + env(safe-area-inset-top));
+    padding-bottom: calc(24px + env(safe-area-inset-bottom));
+    padding-left: calc(24px + env(safe-area-inset-left));
+    padding-right: calc(24px + env(safe-area-inset-right));
+    position: relative;
+  }
+
+  /* 玻璃卡片容器 */
+  .glass-card {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 480px;
+    margin: 0 auto;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 32px;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255,255,255,0.12);
+    padding: 40px 36px;
+    transition: transform 0.2s ease;
+  }
+
+  h1 {
+    text-align: center;
+    font-size: 2.4rem;
+    font-weight: 800;
+    color: var(--text-main);
+    letter-spacing: 2px;
+    margin-bottom: 6px;
+  }
+  .subtitle {
+    text-align: center;
+    font-size: 0.95rem;
+    color: var(--text-light);
+    margin-bottom: 28px;
+  }
+
+  /* 输入区域 */
+  .input-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 26px;
+  }
+  .input-row input {
+    flex: 1;
+    padding: 14px 18px;
+    border: 1px solid var(--glass-border);
+    border-radius: 50px;
+    background: rgba(255, 255, 255, 0.10);
+    backdrop-filter: blur(8px);
+    font-size: 1rem;
+    color: var(--text-main);
+    outline: none;
+    transition: all 0.25s ease;
+  }
+  .input-row input::placeholder {
+    color: #9286ad;
+  }
+  .input-row input:focus {
+    border-color: var(--pink);
+    box-shadow: 0 0 0 4px rgba(255, 110, 199, 0.2);
+    background: rgba(255, 255, 255, 0.16);
+  }
+  .btn-add {
+    padding: 14px 24px;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 50px;
+    background: rgba(255, 255, 255, 0.18);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.25s ease;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+  }
+  .btn-add:hover {
+    transform: translateY(-2px);
+    background: rgba(255, 255, 255, 0.28);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45);
+  }
+  .btn-add:active {
+    transform: translateY(0);
+  }
+
+  /* 列表区域 */
+  .food-list {
+    list-style: none;
+    max-height: 280px;
+    overflow-y: auto;
+    margin-bottom: 26px;
+    border-radius: 20px;
+    padding-right: 4px;
+  }
+  .food-list::-webkit-scrollbar {
+    width: 6px;
+  }
+  .food-list::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.22);
+    border-radius: 10px;
+  }
+  .food-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(255, 255, 255, 0.09);
+    border: 1px solid var(--glass-border);
+    border-radius: 18px;
+    padding: 13px 18px;
+    margin-bottom: 10px;
+    animation: slideIn 0.35s ease;
+    transition: background 0.2s ease;
+  }
+  .food-item:hover {
+    background: rgba(255, 255, 255, 0.17);
+  }
+  .food-name {
+    font-size: 1.05rem;
+    color: var(--text-main);
+    font-weight: 600;
+    word-break: break-all;
+  }
+  .btn-delete {
+    flex-shrink: 0;
+    margin-left: 14px;
+    padding: 7px 14px;
+    border: none;
+    border-radius: 50px;
+    background: rgba(255, 110, 130, 0.22);
+    color: #ff93a8;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .btn-delete:hover {
+    background: rgba(255, 90, 110, 0.5);
+    color: #fff;
+    transform: scale(1.06);
+  }
+  .empty-hint {
+    text-align: center;
+    color: var(--text-light);
+    padding: 26px 10px;
+    font-size: 0.95rem;
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(30px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  /* 抽取按钮 */
+  .btn-pick {
+    display: block;
+    width: 100%;
+    padding: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 50px;
+    background: rgba(255, 255, 255, 0.18);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: #fff;
+    font-size: 1.4rem;
+    font-weight: 800;
+    letter-spacing: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+  }
+  .btn-pick:hover {
+    transform: translateY(-3px);
+    background: rgba(255, 255, 255, 0.28);
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.45);
+  }
+  .btn-pick:active {
+    transform: translateY(0) scale(0.97);
+  }
+
+  /* 抽取结果 */
+  .result-box {
+    text-align: center;
+    margin-top: 28px;
+    min-height: 80px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .result-label {
+    font-size: 0.9rem;
+    color: var(--text-light);
+    margin-bottom: 6px;
+  }
+  .result-text {
+    font-size: 3.4rem;
+    font-weight: 900;
+    line-height: 1.25;
+    letter-spacing: 3px;
+    background: linear-gradient(135deg, #ff6ec7, #a855f7, #38bdf8, #ff9a56);
+    background-size: 300% 300%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    animation: rainbow 3s ease infinite, popIn 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
+    word-break: break-all;
+  }
+  .result-text.breathing {
+    animation: rainbow 3s ease infinite, breathe 2.4s ease-in-out infinite;
+  }
+  .result-placeholder {
+    font-size: 1.1rem;
+    color: #7a6d99;
+    letter-spacing: 1px;
+  }
+
+  @keyframes rainbow {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  @keyframes popIn {
+    0% { transform: scale(0.2); opacity: 0; }
+    55% { transform: scale(1.2); opacity: 1; }
+    75% { transform: scale(0.92); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  @keyframes breathe {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+  }
+
+  .toast {
+    position: fixed;
+    bottom: calc(40px + env(safe-area-inset-bottom));
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: rgba(40, 32, 62, 0.78);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    border-radius: 50px;
+    padding: 14px 26px;
+    max-width: calc(100vw - 48px);
+    color: var(--text-main);
+    font-size: 1rem;
+    font-weight: 600;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    opacity: 0;
+    transition: all 0.4s ease;
+    z-index: 10;
+    pointer-events: none;
+    white-space: normal;
+    text-align: center;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  @media (max-width: 520px) {
+    body { padding: 16px; }
+    .glass-card {
+      padding: 26px 20px;
+      border-radius: 26px;
+    }
+    h1 { font-size: 1.9rem; }
+    .subtitle { font-size: 0.88rem; margin-bottom: 22px; }
+    .input-row { flex-direction: column; gap: 10px; margin-bottom: 20px; }
+    .input-row input { width: 100%; font-size: 1rem; }
+    .btn-add { width: 100%; min-height: 48px; font-size: 1.05rem; }
+    .food-list { max-height: 220px; margin-bottom: 20px; }
+    .food-item { padding: 12px 14px; }
+    .food-name { font-size: 1rem; }
+    .btn-delete { min-height: 40px; padding: 6px 14px; }
+    .btn-pick { min-height: 54px; font-size: 1.2rem; letter-spacing: 3px; }
+    .result-box { margin-top: 22px; min-height: 68px; }
+    .result-text { font-size: 2.4rem; letter-spacing: 2px; }
+    .result-placeholder { font-size: 1rem; }
+    .toast { font-size: 0.9rem; padding: 12px 20px; }
+  }
+
+  @media (max-width: 380px) {
+    .glass-card { padding: 22px 16px; border-radius: 22px; }
+    h1 { font-size: 1.7rem; }
+    .btn-add { min-height: 46px; }
+    .btn-pick { min-height: 50px; font-size: 1.1rem; }
+    .result-text { font-size: 2.1rem; }
+    .food-name { font-size: 0.95rem; }
+  }
+</style>
+</head>
+<body>
+  <div class="glass-card">
+    <h1>今天吃什么？🍽️</h1>
+    <p class="subtitle">选择困难症治愈器，让命运替你决定~</p>
+
+    <div class="input-row">
+      <input type="text" id="foodInput" placeholder="输入爱吃的美食，如：火锅" maxlength="30" />
+      <button class="btn-add" id="addBtn">添加</button>
+    </div>
+
+    <ul class="food-list" id="foodList"></ul>
+
+    <button class="btn-pick" id="pickBtn">🎲 随机抽取</button>
+
+    <div class="result-box">
+      <span class="result-label">今天吃</span>
+      <div class="result-text" id="resultText">
+        <span class="result-placeholder">?? ?</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+<script>
+(function () {
+  const STORAGE_KEY = "what-to-eat-list";
+  const foodInput = document.getElementById("foodInput");
+  const addBtn = document.getElementById("addBtn");
+  const foodList = document.getElementById("foodList");
+  const pickBtn = document.getElementById("pickBtn");
+  const resultText = document.getElementById("resultText");
+  const toast = document.getElementById("toast");
+
+  let foods = [];
+
+  // 从 localStorage 加载
+  function loadFoods() {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      foods = saved ? JSON.parse(saved) : [];
+      if (!Array.isArray(foods)) foods = [];
+    } catch (e) {
+      foods = [];
+    }
+  }
+
+  // 保存到 localStorage
+  function saveFoods() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(foods));
+    } catch (e) {
+      // 存储失败时静默处理
+    }
+  }
+
+  // 渲染列表
+  function renderList() {
+    foodList.innerHTML = "";
+
+    if (foods.length === 0) {
+      const li = document.createElement("li");
+      li.className = "empty-hint";
+      li.textContent = "列表空空，快加几道爱吃的菜吧！";
+      foodList.appendChild(li);
+      return;
+    }
+
+    foods.forEach(function (food, index) {
+      const li = document.createElement("li");
+      li.className = "food-item";
+
+      const nameSpan = document.createElement("span");
+      nameSpan.className = "food-name";
+      nameSpan.textContent = food;
+
+      const delBtn = document.createElement("button");
+      delBtn.className = "btn-delete";
+      delBtn.textContent = "删除";
+      delBtn.setAttribute("aria-label", "删除 " + food);
+      delBtn.addEventListener("click", function () {
+        foods.splice(index, 1);
+        saveFoods();
+        renderList();
+      });
+
+      li.appendChild(nameSpan);
+      li.appendChild(delBtn);
+      foodList.appendChild(li);
+    });
+  }
+
+  // 显示提示
+  let toastTimer = null;
+  function showToast(message) {
+    toast.textContent = message;
+    toast.classList.add("show");
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () {
+      toast.classList.remove("show");
+    }, 2200);
+  }
+
+  // 添加食物
+  function addFood() {
+    const name = foodInput.value.trim();
+    if (!name) {
+      showToast("请输入美食名称哦~");
+      foodInput.focus();
+      return;
+    }
+    foods.push(name);
+    saveFoods();
+    renderList();
+    foodInput.value = "";
+    foodInput.focus();
+  }
+
+  // 随机抽取
+  function pickFood() {
+    if (foods.length === 0) {
+      showToast("列表空空，快加几道爱吃的菜吧！");
+      return;
+    }
+
+    const randomIndex = Math.floor(Math.random() * foods.length);
+    const picked = foods[randomIndex];
+
+    resultText.classList.remove("breathing");
+    // 重置动画：短暂清空再重新设置，确保动画重新播放
+    resultText.textContent = "";
+
+    // 用 requestAnimationFrame 确保重绘后再设置文本，以触发动画
+    requestAnimationFrame(function () {
+      resultText.textContent = picked;
+      resultText.classList.remove("breathing");
+    });
+  }
+
+  // 动画结束后添加呼吸效果
+  resultText.addEventListener("animationend", function (e) {
+    if (e.animationName === "popIn") {
+      resultText.classList.add("breathing");
+    }
+  });
+
+  // 事件绑定
+  addBtn.addEventListener("click", addFood);
+  foodInput.addEventListener("keydown", function (e) {
+    if (e.key === "Enter") {
+      addFood();
+    }
+  });
+  pickBtn.addEventListener("click", pickFood);
+
+  // 初始化
+  loadFoods();
+  renderList();
+})();
+</script>
+</body>
+</html>
